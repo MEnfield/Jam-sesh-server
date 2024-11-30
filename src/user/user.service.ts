@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -14,19 +16,24 @@ export class UserService {
     return this.userRepository.find();
   }
 
-  async create(user: User): Promise<User> {
-    return this.userRepository.save(user);
+  async findOneByEmail(email: string): Promise<User> {
+    const foundUser = this.userRepository.findOne({ where: { email } });
+
+    if (!foundUser) {
+      throw new ForbiddenException(`User with email ${email} not found`);
+    }
+
+    return foundUser;
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { password, ...rest } = createUserDto;
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+    // Generate a salt and hash the password
+    const saltRounds = 10;
+    const password_hash = await bcrypt.hash(password, saltRounds);
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
+    const user = this.userRepository.create({ ...rest, password_hash });
+    return this.userRepository.save(user);
+  }
 }
