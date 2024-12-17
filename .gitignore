@@ -8,6 +8,8 @@ build/
 
 # dotenv environment files
 .env
+.env.development
+.env.production
 .env.local
 .env.*.local
 
@@ -38,3 +40,5 @@ coverage/
 
 # Ignore TypeORM CLI configuration files (if you use CLI for migrations, etc.)
 typeorm.config.js
+
+.prettierrc
